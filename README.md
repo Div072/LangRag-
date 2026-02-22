@@ -1,11 +1,10 @@
 # LangRag
 
-Fresh start implementation for the YouTube language-learning RAG app.
+YouTube language-learning RAG app.
 
 ## Current Vector DB Choice
 
 Phase 1 uses a local vector database (Chroma, persisted on disk) for video indexing and retrieval.
-Cloud vector-database integration is intentionally deferred.
 
 ## Backend
 
