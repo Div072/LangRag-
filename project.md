@@ -5,7 +5,7 @@ Core Functionality:
 
     User pastes a YouTube URL.
 
-    System downloads audio, transcribes it (with timestamps), and stores vector embeddings.
+    System fetches transcript segments (with timestamps) from YouTube and stores vector embeddings.
 
     User chats with the video (RAG). The AI answers questions and provides clickable timestamps to jump the video to the exact moment where the answer is found.
 
@@ -19,15 +19,15 @@ Core Functionality:
 
     AI/ML Services:
 
-        Transcription: OpenAI Whisper API (Must use verbose_json for timestamps).
+        Transcription: YouTube Transcript API.
 
         LLM: OpenAI GPT-4o-mini (via langchain-openai).
 
         Embeddings: text-embedding-3-small.
 
-        Vector DB: Pinecone (Serverless).
+        Vector DB: Chroma (local persistent store) for Phase 1.
 
-    Video Tools: yt-dlp (for audio extraction).
+    Video Tools: yt-dlp (optional metadata/title lookup).
 
     Database: PostgreSQL (via Supabase or local Docker) - optional for Phase 1.
 
@@ -36,15 +36,13 @@ Pipeline A: Ingestion (/process-video)
 
     Input: YouTube URL.
 
-    Download: Backend uses yt-dlp to download audio as a temporary MP3 (low bitrate is fine).
+    Transcript: Backend fetches transcript segments from YouTube Transcript API.
 
-    Transcribe: Send MP3 to OpenAI Whisper API.
-
-        Constraint: Set response_format="verbose_json" to get start/end times for every segment.
+        Constraint: Normalize each segment to `start`, `end`, `text`.
 
     Embed: Split transcript into segments. Create embeddings for each segment.
 
-    Store: Upsert to Pinecone.
+    Store: Upsert to local vector DB (Chroma).
 
         Metadata: video_id, text, start_time, end_time.
 
@@ -54,7 +52,7 @@ Pipeline B: Chat RAG (/chat)
 
     Input: user_query, video_id.
 
-    Retrieve: Convert query to vector -> Search Pinecone for top 3 matching segments from this video_id.
+    Retrieve: Convert query to vector -> Search local vector DB for top 3 matching segments from this video_id.
 
     Generate: Send retrieved context + query to LLM.
 
@@ -67,7 +65,7 @@ POST /process-video
 
     Request: { "url": "https://youtube.com/..." }
 
-    Process: Downloads audio, calls Whisper API, upserts to Pinecone.
+    Process: Fetches YouTube transcript, upserts to local vector DB.
 
     Response: { "status": "success", "video_id": "uuid-string", "title": "Video Title" }
 
@@ -110,15 +108,13 @@ Phase 1: Backend Core
 
     Set up FastAPI.
 
-    Implement yt-dlp download function.
-
-    Implement OpenAI Whisper API integration.
+    Implement YouTube URL parsing and transcript retrieval via YouTube Transcript API.
 
     Test with a real YouTube link.
 
-Phase 2: Vector Database Integration
+Phase 2: Vector Database Integration (Local First)
 
-    Set up Pinecone client.
+    Set up local Chroma client.
 
     Implement embedding logic.
 
