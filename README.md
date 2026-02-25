@@ -6,6 +6,16 @@ YouTube language-learning RAG app.
 
 Phase 1 uses a local vector database (Chroma, persisted on disk) for video indexing and retrieval.
 
+## Modular Chunking Strategy
+
+Chunking logic is implemented in `backend/chunking.py` with pluggable strategies:
+- `segment_count`
+- `duration`
+- `character`
+
+Use from `backend/transcript.py`:
+- `chunk_transcript(url, strategy="segment_count", **kwargs)`
+
 ## Backend
 
 1. Create env file:
